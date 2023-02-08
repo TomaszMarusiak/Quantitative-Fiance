@@ -34,6 +34,7 @@ def BSM(st,k,r,t,vol, type="C"):
 
 # COMMAND ----------
 
+#Test
 BSM(600,599.4,0.0077,115/365,0.1697, type="C")
 
 # COMMAND ----------
