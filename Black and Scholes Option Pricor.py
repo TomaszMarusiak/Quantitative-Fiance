@@ -1,6 +1,3 @@
-# Databricks notebook source
-# MAGIC %md
-# MAGIC Black and Scholes Option Pricor
 
 # COMMAND ----------
 
@@ -12,6 +9,7 @@ from scipy.stats import norm
 # COMMAND ----------
 
 #Variables
+
 """
 k = strike price
 st = spot price
@@ -19,14 +17,6 @@ r = risk free rate
 t = maturity
 vol = volitality
 """
-
-k = 350
-st = 360
-r = 0.0329
-t = 240/365
-vol = 0.30
-
-# COMMAND ----------
 
 #create a function, type c=call, p=put
 def BSM(st,k,r,t,vol, type="C"):
