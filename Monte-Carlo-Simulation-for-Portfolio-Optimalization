@@ -1,0 +1,104 @@
+#import neccessary packages
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import yfinance as yf
+from datetime import date, timedelta
+
+
+
+
+
+#Read the stock market data based on tickers of selected companies
+MSFT = yf.download("MSFT", start = date.today() - timedelta(days=1095), end = date.today())['Adj Close']
+AAPL = yf.download("AAPL", start = date.today() - timedelta(days=1095), end = date.today())['Adj Close']
+AMZN = yf.download("AMZN", start = date.today() - timedelta(days=1095), end = date.today())['Adj Close']
+NVDA = yf.download("NVDA", start = date.today() - timedelta(days=1095), end = date.today())['Adj Close']
+
+
+
+
+#Create the dataframe
+
+df = pd.concat([MSFT,AAPL,AMZN,NVDA], axis =1)
+df.columns = ['MSFT','AAPL','AMZN','NVDA']
+
+
+
+
+#Monte Carlo variables calculations
+
+#Calcuclate logarithmic returns
+log_rets = np.log(df/df.shift(1))
+
+# N = number of holdings in the portfolio
+N = len(df.columns)
+#set of N random numbers (not adding up to 1!)
+weights = np.random.random(N)
+# sum very close to one but with float error (not affecting anything)
+weights = weights/ np.sum(weights)
+#Calculate covariance
+covariance = log_rets.cov()
+
+
+
+
+#Function to generate random portfolio weights for every simulation
+def generate_weights(N):
+    weights = np.random.random(N)
+    return weights/np.sum(weights)
+
+
+
+
+#Function to calculate returns for every combination of simulated weights
+def calculate_returns(wights, log_rets):
+    return np.sum(log_r.mean()*weights) * 252
+
+
+
+
+#Function to calculate volitality of every simulation
+def calculate_volitality(weights, covariance):
+    annulaized_cov = np.dot(covariance*252,weights)
+    vol = np.dot(weights.transpose(),annulaized_cov)
+    return np.sqrt(vol)
+
+
+
+
+# Monte Carlo Simulation
+mc_returns = []
+mc_vol = []
+mc_weights = []
+
+for sims in range(10000):
+    weights = generate_weights(N=4)
+    mc_weights.append(weights)
+    sim_r = calculate_returns(weights, log_r)
+    mc_returns.append(sim_r)
+    sim_vol = calculate_volitality(weights, covariance)
+    mc_vol.append(sim_vol)
+
+
+
+
+#Share ratio as indicator of simulated performances
+sp_ratio = np.array(mc_returns)/np.array(mc_vol)
+
+
+
+
+#Scatter diagram 
+plt.figure(dpi=200, figsize = (10,5))
+plt.scatter(x= mc_vol, y = mc_returns, c= sp_ratio)
+plt.colorbar(label = 'Sharpe ratio')
+plt.xlabel('Volitality')
+plt.ylabel('Return')
+plt.title('Monte Carlo performance simulation of different portfolio weights based on historical data')
+
+
+
+
+#Weights with the best performance relative to level of risk
+mc_weights[np.argmax(sp_ratio)]
