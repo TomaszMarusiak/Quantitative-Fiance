@@ -1,0 +1,69 @@
+#import packages
+import math as m
+from scipy.stats import norm
+
+#Black and Scholes calculator
+def black_scholes(spot_price,strike_price,risk_free_rate,volatility,time, option_type='C'):
+  d1 = (m.log(spot_price/strike_price) + (risk_free_rate+(volatility**2/2))*time)/(volatility*m.sqrt(time))
+  d2 = d1 - volatility*m.sqrt(time)
+  try:
+    if option_type == "C":
+      price = norm.cdf(d1,0,1)*spot_price - norm.cdf(d2,0,1)*strike_price*m.exp(-risk_free_rate*time)
+    elif option_type == "P":
+      price = -spot_price*norm.cdf(-d1,0,1) + norm.cdf(-d2,0,1)*strike_price*m.exp(-risk_free_rate*time)
+  except:
+    return -2
+    
+  return price
+  
+  #vega calculator
+  
+  def vega(spot_price, strike_price, time, risk_free_rate, volatility):
+  d1 = (m.log(spot_price / strike_price) + (risk_free_rate + 0.5 * volatility ** 2) * time) / (volatility * m.sqrt(time))
+  return spot_price * norm.pdf(d1) * m.sqrt(time)
+  
+  #Brenner-Subrahmanyam approximation
+  
+  def brenner_subrahmanyam_approximation(spot_price, strike_price, time, risk_free_rate, market_price, option_type):
+    if option_type == 'C':
+        forward_price = spot_price * m.exp(risk_free_rate * time)
+        d1 = (m.log(forward_price / strike_price)) / m.sqrt(time)
+        return m.sqrt(2 * m.pi / time) * (market_price / (forward_price - strike_price + d1 * market_price))
+    elif option_type == 'P':
+        forward_price = strike_price * m.exp(-risk_free_rate * time)
+        d1 = (math.log(forward_price / spot_price)) / math.sqrt(time)
+        return math.sqrt(2 * math.pi / time) * (market_price / (strike_price - forward_price + d1 * market_price))
+        
+  #implied volatility calculator
+  
+  def implied_volatility(spot_price, strike_price, time, risk_free_rate, market_price, option_type='C'):
+  MAX_ITERATIONS = 500
+  tolerance = 1e-4
+
+  volatility = brenner_subrahmanyam_approximation(spot_price, strike_price, time, risk_free_rate, market_price, option_type) #set starting volatility
+
+  for i in range(MAX_ITERATIONS):
+    bs_price = black_scholes(spot_price,strike_price,risk_free_rate,volatility,time,option_type)
+    bs_vega = vega(spot_price, strike_price, time, risk_free_rate, volatility)
+
+    diff = bs_price - market_price
+
+    if abs(diff) < tolerance:
+      return volatility
+
+    else:
+      volatility = volatility - diff/(bs_vega + 1e-8)
+      
+  return -1
+  
+  
+  #Test/usable area
+  
+  if __name__ == '__main__':
+  spot_price = 275.00
+  strike_price = 310.00
+  time = 184 / 365
+  risk_free_rate = 0.0341
+  market_price = 1.937
+
+implied_volatility(spot_price, strike_price, time, risk_free_rate, market_price, option_type='C')
