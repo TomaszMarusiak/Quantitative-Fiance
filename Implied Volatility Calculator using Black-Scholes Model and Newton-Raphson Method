@@ -28,11 +28,11 @@ def black_scholes(spot_price,strike_price,risk_free_rate,volatility,time, option
     if option_type == 'C':
         forward_price = spot_price * m.exp(risk_free_rate * time)
         d1 = (m.log(forward_price / strike_price)) / m.sqrt(time)
-        return m.sqrt(2 * m.pi / time) * (market_price / (forward_price - strike_price + d1 * market_price))
+        return m.sqrt(2 * m.pi / time) * (market_price / strike_price)
     elif option_type == 'P':
         forward_price = strike_price * m.exp(-risk_free_rate * time)
-        d1 = (math.log(forward_price / spot_price)) / math.sqrt(time)
-        return math.sqrt(2 * math.pi / time) * (market_price / (strike_price - forward_price + d1 * market_price))
+        d1 = (m.log(forward_price / spot_price)) / m.sqrt(time)
+        return m.sqrt(2 * m.pi / time) * (market_price / strike_price)
         
   #implied volatility calculator
   
